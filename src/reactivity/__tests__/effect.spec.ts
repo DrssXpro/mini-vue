@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { reactive } from "../reactive";
+import { effect } from "../effect";
 
 describe("effect", () => {
-  it.skip("happy path", () => {
+  it("happy path", () => {
     // use reactive
     const user = reactive({ age: 10 });
     let nextAge;
