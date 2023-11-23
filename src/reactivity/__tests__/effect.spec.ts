@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { reactive } from "../reactive";
 import { effect } from "../effect";
 
@@ -32,5 +32,40 @@ describe("effect", () => {
     expect(foo).toBe(3);
     expect(res).toBe("foo");
   });
-  
+
+
+  it("scheduler", () => {
+    let dummy;
+    let run: any;
+
+    const scheduler = vi.fn(() => {
+      run = runner;
+    });
+    const obj = reactive({ foo: 1 });
+
+    const runner = effect(
+      () => {
+        dummy = obj.foo;
+      },
+      {
+        scheduler,
+      }
+    );
+
+    // 首次依赖收集不执行调度器而是执行 fn
+    expect(scheduler).not.toHaveBeenCalled();
+    expect(dummy).toBe(1);
+
+    // 触发 setter
+    obj.foo++; //obj.foo: 1 -> 2, dummy: 1
+    // 如果有 scheduler 则调用 scheduler 不再调用 fn
+    expect(scheduler).toHaveBeenCalledTimes(1);
+    // scheduler 中没有改变 obj.foo
+    expect(dummy).toBe(1);
+
+    // 手动调用 run（fn）
+    run();
+    // 触发 fn 调用，dummy = obj.foo
+    expect(dummy).toBe(2);
+  });
 });

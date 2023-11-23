@@ -3,8 +3,11 @@ let activeEffect;
 
 class ReactiveEffect {
   private _fn: any;
-  constructor(fn) {
+  public scheduler: any;
+  // add options: scheduler
+  constructor(fn, options) {
     this._fn = fn;
+    this.scheduler = options.scheduler;
   }
   run() {
     activeEffect = this;
@@ -12,8 +15,10 @@ class ReactiveEffect {
   }
 }
 
-export function effect(fn) {
-  const _effect = new ReactiveEffect(fn);
+export function effect(fn, options: any = {}) {
+  // add options: scheduler
+  const scheduler = options.scheduler;
+  const _effect = new ReactiveEffect(fn, { scheduler });
   _effect.run();
   // 💡: run 方法内部访问了 this，因此需要手动绑定 this 实例
   return _effect.run.bind(_effect);
@@ -40,5 +45,10 @@ export function trigger(target, key) {
   const depsMap = targetMap.get(target);
   if (!depsMap) return;
   const dep = depsMap.get(key);
-  dep && dep.forEach((activeFn) => activeFn.run());
+  if (!dep) return;
+  // add scheduler 优先调用
+  for (const effect of dep) {
+    if (effect.scheduler) effect.scheduler();
+    else effect.run();
+  }
 }
