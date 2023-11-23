@@ -8,13 +8,15 @@ class ReactiveEffect {
   }
   run() {
     activeEffect = this;
-    this._fn();
+    return this._fn();
   }
 }
 
 export function effect(fn) {
   const _effect = new ReactiveEffect(fn);
   _effect.run();
+  // 💡: run 方法内部访问了 this，因此需要手动绑定 this 实例
+  return _effect.run.bind(_effect);
 }
 
 // 依赖收集：WeakMap => Map => Set (obj => key => fns)
@@ -40,5 +42,3 @@ export function trigger(target, key) {
   const dep = depsMap.get(key);
   dep && dep.forEach((activeFn) => activeFn.run());
 }
-
-
