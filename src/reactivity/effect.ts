@@ -4,6 +4,7 @@ let activeEffect;
 class ReactiveEffect {
   private _fn: any;
   public scheduler: any;
+  public deps = [];
   // add options: scheduler
   constructor(fn, options) {
     this._fn = fn;
@@ -13,6 +14,12 @@ class ReactiveEffect {
     activeEffect = this;
     return this._fn();
   }
+
+  stop() {
+    this.deps.forEach((item: Set<any>) => {
+      item.delete(this);
+    });
+  }
 }
 
 export function effect(fn, options: any = {}) {
@@ -21,7 +28,10 @@ export function effect(fn, options: any = {}) {
   const _effect = new ReactiveEffect(fn, { scheduler });
   _effect.run();
   // 💡: run 方法内部访问了 this，因此需要手动绑定 this 实例
-  return _effect.run.bind(_effect);
+  const runner: any = _effect.run.bind(_effect);
+  // 在 runner 上绑定 ReactiveEffect 实例
+  runner.effect = _effect;
+  return runner;
 }
 
 // 依赖收集：WeakMap => Map => Set (obj => key => fns)
@@ -37,7 +47,10 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
-  dep.add(activeEffect);
+  if (activeEffect) {
+    dep.add(activeEffect);
+    activeEffect.deps.push(dep);
+  }
 }
 
 // 触发依赖：获取 fns => 遍历执行 run 方法
@@ -51,4 +64,8 @@ export function trigger(target, key) {
     if (effect.scheduler) effect.scheduler();
     else effect.run();
   }
+}
+
+export function stop(runner) {
+  runner.effect.stop();
 }

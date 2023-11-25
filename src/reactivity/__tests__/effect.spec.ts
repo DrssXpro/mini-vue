@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { reactive } from "../reactive";
-import { effect } from "../effect";
+import { effect, stop } from "../effect";
 
 describe("effect", () => {
   it("happy path", () => {
     // use reactive
     const user = reactive({ age: 10 });
     let nextAge;
-
     effect(() => {
       nextAge = user.age + 1;
     });
@@ -32,7 +31,6 @@ describe("effect", () => {
     expect(foo).toBe(3);
     expect(res).toBe("foo");
   });
-
 
   it("scheduler", () => {
     let dummy;
@@ -67,5 +65,24 @@ describe("effect", () => {
     run();
     // 触发 fn 调用，dummy = obj.foo
     expect(dummy).toBe(2);
+  });
+
+  it("stop", () => {
+    let dummy; 
+    const obj = reactive({ prop: 1 });
+    const runner = effect(() => {
+      dummy = obj.prop;
+    });
+
+    obj.prop = 2;
+    expect(dummy).toBe(2);
+    // 停止 runner (触发 setter trigger 逻辑)
+    stop(runner);
+    obj.prop = 3;
+    expect(dummy).toBe(2);
+
+    // 手动调用 runner
+    runner();
+    expect(dummy).toBe(3);
   });
 });
