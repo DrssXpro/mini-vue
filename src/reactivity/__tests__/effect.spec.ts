@@ -67,18 +67,20 @@ describe("effect", () => {
     expect(dummy).toBe(2);
   });
 
-  it("stop", () => {
+  it.only("stop", () => {
     let dummy;
-    const obj = reactive({ prop: 1 });
+    const obj =reactive({ prop: 1 });
     const runner = effect(() => {
       dummy = obj.prop;
     });
-
+ 
     obj.prop = 2;
     expect(dummy).toBe(2);
     // 停止 runner (触发 setter trigger 逻辑)
     stop(runner);
-    obj.prop = 3;
+    // obj.prop = 3;
+    // 💡：++ 操作分解 => getter + setter
+    obj.prop++;
     expect(dummy).toBe(2);
 
     // 手动调用 runner
@@ -96,7 +98,7 @@ describe("effect", () => {
       },
       {
         onStop,
-      } 
+      }
     );
 
     stop(runner);

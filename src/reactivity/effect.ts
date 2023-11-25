@@ -1,7 +1,8 @@
 import { extend } from "../shared";
 
 // 全局变量
-let activeEffect;
+let activeEffect; // 当前活跃副作用函数
+let shouldTrack; // 💡：是否进行依赖收集
 
 class ReactiveEffect {
   private _fn: any;
@@ -13,8 +14,15 @@ class ReactiveEffect {
     this._fn = fn;
   }
   run() {
+    // 💡：active标志 stop 的调用，如果 stop 调用后则不再继续执行，shouldTrack 永远为 false
+    if (!this.active) {
+      return this._fn();
+    }
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+    const res = this._fn();
+    shouldTrack = false;
+    return res;
   }
 
   stop() {
@@ -32,6 +40,8 @@ function cleanupEffect(effect) {
   deps.forEach((item: Set<any>) => {
     item.delete(effect);
   });
+  // 💡 优化：cleanup后 deps 里存放的依赖已经为空，直接设置为空即可
+  deps.length = 0;
 }
 
 export function effect(fn, options: any = {}) {
@@ -49,6 +59,8 @@ export function effect(fn, options: any = {}) {
 // 依赖收集：WeakMap => Map => Set (obj => key => fns)
 const targetMap = new WeakMap();
 export function track(target, key) {
+  // 💡：将判断依赖收集提前
+  if (!isTracking()) return;
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -59,10 +71,16 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
-  if (activeEffect) {
-    dep.add(activeEffect);
-    activeEffect.deps.push(dep);
-  }
+
+  // 💡 优化：如果 activeEffect 已经存在 dep 中则不再添加
+  if (dep.has(activeEffect)) return;
+  dep.add(activeEffect);
+  activeEffect.deps.push(dep);
+}
+
+// 💡：抽离逻辑，判断是否需要进行依赖收集
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined;
 }
 
 // 触发依赖：获取 fns => 遍历执行 run 方法
