@@ -68,7 +68,7 @@ describe("effect", () => {
   });
 
   it("stop", () => {
-    let dummy; 
+    let dummy;
     const obj = reactive({ prop: 1 });
     const runner = effect(() => {
       dummy = obj.prop;
@@ -84,5 +84,22 @@ describe("effect", () => {
     // 手动调用 runner
     runner();
     expect(dummy).toBe(3);
+  });
+
+  it.only("onStop", () => {
+    const obj = reactive({ foo: 1 });
+    const onStop = vi.fn();
+    let dummy;
+    const runner = effect(
+      () => {
+        dummy = obj.foo;
+      },
+      {
+        onStop,
+      } 
+    );
+
+    stop(runner);
+    expect(onStop).toBeCalledTimes(1);
   });
 });

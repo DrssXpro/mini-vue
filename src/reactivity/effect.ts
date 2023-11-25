@@ -5,6 +5,7 @@ class ReactiveEffect {
   private _fn: any;
   public scheduler: any;
   public deps = [];
+  public onStop?: () => void;
   // add options: scheduler
   constructor(fn, options) {
     this._fn = fn;
@@ -16,6 +17,7 @@ class ReactiveEffect {
   }
 
   stop() {
+    if (this.onStop) this.onStop();
     this.deps.forEach((item: Set<any>) => {
       item.delete(this);
     });
@@ -25,7 +27,9 @@ class ReactiveEffect {
 export function effect(fn, options: any = {}) {
   // add options: scheduler
   const scheduler = options.scheduler;
+  const onStop = options.onStop;
   const _effect = new ReactiveEffect(fn, { scheduler });
+  _effect.onStop = onStop;
   _effect.run();
   // 💡: run 方法内部访问了 this，因此需要手动绑定 this 实例
   const runner: any = _effect.run.bind(_effect);
