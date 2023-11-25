@@ -86,7 +86,7 @@ describe("effect", () => {
     expect(dummy).toBe(3);
   });
 
-  it.only("onStop", () => {
+  it("onStop", () => {
     const obj = reactive({ foo: 1 });
     const onStop = vi.fn();
     let dummy;

@@ -1,15 +1,16 @@
+import { extend } from "../shared";
+
 // 全局变量
 let activeEffect;
 
 class ReactiveEffect {
   private _fn: any;
-  public scheduler: any;
+  // 💡：add active lock，避免 stop 重复调用执行逻辑
+  public active = true;
   public deps = [];
   public onStop?: () => void;
-  // add options: scheduler
-  constructor(fn, options) {
+  constructor(fn, public scheduler: any = null) {
     this._fn = fn;
-    this.scheduler = options.scheduler;
   }
   run() {
     activeEffect = this;
@@ -17,19 +18,26 @@ class ReactiveEffect {
   }
 
   stop() {
-    if (this.onStop) this.onStop();
-    this.deps.forEach((item: Set<any>) => {
-      item.delete(this);
-    });
+    if (this.active) {
+      cleanupEffect(this);
+      this.onStop && this.onStop();
+      this.active = false;
+    }
   }
 }
 
+// 💡：stop 删除逻辑抽离
+function cleanupEffect(effect) {
+  const { deps } = effect;
+  deps.forEach((item: Set<any>) => {
+    item.delete(effect);
+  });
+}
+
 export function effect(fn, options: any = {}) {
-  // add options: scheduler
-  const scheduler = options.scheduler;
-  const onStop = options.onStop;
-  const _effect = new ReactiveEffect(fn, { scheduler });
-  _effect.onStop = onStop;
+  const _effect = new ReactiveEffect(fn);
+  // 💡：抽离 extend 工具（Object.assign），优化赋值逻辑
+  extend(_effect, options);
   _effect.run();
   // 💡: run 方法内部访问了 this，因此需要手动绑定 this 实例
   const runner: any = _effect.run.bind(_effect);
