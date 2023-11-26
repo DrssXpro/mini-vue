@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { readonly, isReadonly } from "../reactive";
+import { readonly, isReadonly, isProxy } from "../reactive";
 
 describe("readonly", () => {
   it("happy path", () => {
@@ -26,5 +26,12 @@ describe("readonly", () => {
     const wrapped = readonly(original);
     expect(isReadonly(wrapped)).toBe(true);
     expect(isReadonly(original)).toBe(false);
+  });
+
+  it("isProxy", () => {
+    const original = { foo: 1 };
+    const observed = readonly(original);
+    expect(isProxy(original)).toBe(false);
+    expect(isProxy(observed)).toBe(true);
   });
 });

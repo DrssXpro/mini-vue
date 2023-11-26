@@ -18,6 +18,10 @@ export function shallowReadonly(raw) {
   return createActiveObject(raw, shallowReadonlyHandlers);
 }
 
+export function isProxy(raw) {
+  return isReactive(raw) || isReadonly(raw);
+}
+
 // 💡：访问内置的属性进行判断
 export function isReactive(value) {
   // attention：如果不存在该属性会返回 undefined，因此双重取反

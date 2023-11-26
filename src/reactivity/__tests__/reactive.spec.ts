@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reactive, isReactive } from "../reactive";
+import { reactive, isReactive, isProxy } from "../reactive";
 describe("reacive", () => {
   it("happy path", () => {
     const original = { foo: 1 };
@@ -18,5 +18,12 @@ describe("reacive", () => {
     expect(isReactive(observed.nested)).toBe(true);
     expect(isReactive(observed.arr)).toBe(true);
     expect(isReactive(observed.arr[0])).toBe(true);
+  });
+
+  it("isProxy", () => {
+    const original = { foo: 1 };
+    const observed = reactive(original);
+    expect(isProxy(original)).toBe(false);
+    expect(isProxy(observed)).toBe(true);
   });
 });
