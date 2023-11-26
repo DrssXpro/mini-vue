@@ -1,4 +1,4 @@
-import { mutableHandlers, readonlyHandlers } from "./baseHandlers";
+import { mutableHandlers, readonlyHandlers, shallowReadonlyHandlers } from "./baseHandlers";
 
 // 💡：私有属性功能属性枚举
 export enum ReactiveFlags {
@@ -12,6 +12,10 @@ export function reactive(raw) {
 
 export function readonly(raw) {
   return createActiveObject(raw, readonlyHandlers);
+}
+
+export function shallowReadonly(raw) {
+  return createActiveObject(raw, shallowReadonlyHandlers);
 }
 
 // 💡：访问内置的属性进行判断

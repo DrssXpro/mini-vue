@@ -12,7 +12,7 @@ describe("reacive", () => {
     expect(isReactive(original)).toBe(false);
   });
 
-  it.only("nested reactive", () => {
+  it("nested reactive", () => {
     const original = { nested: { foo: 1 }, arr: [{ bar: 2 }] };
     const observed = reactive(original);
     expect(isReactive(observed.nested)).toBe(true);

@@ -1,4 +1,4 @@
-import { isObject } from "../shared";
+import { extend, isObject } from "../shared";
 import { track, trigger } from "./effect";
 import { ReactiveFlags, reactive, readonly } from "./reactive";
 
@@ -6,9 +6,10 @@ import { ReactiveFlags, reactive, readonly } from "./reactive";
 const get = createGetter();
 const set = createSetter();
 const readonlyGet = createGetter(true);
+const shallowReadonlyGet = createGetter(true, true); 
 
 // 💡：抽离出 Proxy 中的 get 逻辑
-function createGetter(isReadonly = false) {
+function createGetter(isReadonly = false, isShallow = false) {
   return function get(target, key) {
     // 💡：判断 reactive 对象，访问一个指定的属性，同时区分 readonly
     if (key === ReactiveFlags.IS_RECTIVE) {
@@ -17,6 +18,9 @@ function createGetter(isReadonly = false) {
       return isReadonly;
     }
     const res = Reflect.get(target, key);
+
+    // 💡：增加 shallow 额外判断，不再进行深度代理
+    if (isShallow) return res;
 
     // 💡：考虑 value 为引用值的情况，针对于 value 进行代理
     if (isObject(res)) {
@@ -52,3 +56,7 @@ export const readonlyHandlers = {
     return true;
   },
 };
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shallowReadonlyGet,
+});
