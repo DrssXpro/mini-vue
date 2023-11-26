@@ -1,5 +1,6 @@
+import { isObject } from "../shared";
 import { track, trigger } from "./effect";
-import { ReactiveFlags } from "./reactive";
+import { ReactiveFlags, reactive, readonly } from "./reactive";
 
 // 💡：优化，重复调用时直接使用 get 变量，而不是重复执行 create 函数
 const get = createGetter();
@@ -16,6 +17,13 @@ function createGetter(isReadonly = false) {
       return isReadonly;
     }
     const res = Reflect.get(target, key);
+
+    // 💡：考虑 value 为引用值的情况，针对于 value 进行代理
+    if (isObject(res)) {
+      // 注意 readonly 的区分
+      return isReadonly ? readonly(res) : reactive(res);
+    }
+
     if (!isReadonly) track(target, key);
     return res;
   };

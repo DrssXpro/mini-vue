@@ -67,7 +67,7 @@ describe("effect", () => {
     expect(dummy).toBe(2);
   });
 
-  it.only("stop", () => {
+  it("stop", () => {
     let dummy;
     const obj =reactive({ prop: 1 });
     const runner = effect(() => {
