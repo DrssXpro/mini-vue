@@ -71,15 +71,19 @@ export function track(target, key) {
     dep = new Set();
     depsMap.set(key, dep);
   }
+  // 抽离依赖
+  trackEffects(dep);
+}
 
-  // 💡 优化：如果 activeEffect 已经存在 dep 中则不再添加
+// 💡 抽离逻辑： reactive ref API 公共部分收集依赖
+export function trackEffects(dep) {
   if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
 }
 
 // 💡：抽离逻辑，判断是否需要进行依赖收集
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined;
 }
 
@@ -89,7 +93,11 @@ export function trigger(target, key) {
   if (!depsMap) return;
   const dep = depsMap.get(key);
   if (!dep) return;
-  // add scheduler 优先调用
+  triggerEffects(dep);
+}
+
+// 💡 抽离逻辑：reactive ref API 公共部分触发依赖
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) effect.scheduler();
     else effect.run();
