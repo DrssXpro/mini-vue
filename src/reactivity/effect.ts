@@ -4,7 +4,7 @@ import { extend } from "../shared";
 let activeEffect; // 当前活跃副作用函数
 let shouldTrack; // 💡：是否进行依赖收集
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any;
   // 💡：add active lock，避免 stop 重复调用执行逻辑
   public active = true;
