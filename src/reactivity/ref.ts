@@ -53,3 +53,21 @@ export function isRef(ref) {
 export function unRef(ref) {
   return isRef(ref) ? ref.value : ref;
 }
+
+export function proxyRefs(objWidthRef) {
+  return new Proxy(objWidthRef, {
+    get(target, key) {
+      // 判断该对象里的 value 如果是 ref 对象则返回其 value 值 (脱 ref)
+      return unRef(Reflect.get(target, key));
+    },
+    set(target, key, value) {
+      // set 时额外判断：set 的对象是 ref 并且 set 的 value 不是 ref，则需要修改 ref 的 value 值
+      if (isRef(target[key]) && !isRef(value)) {
+        return (target[key].value = value);
+      } else {
+        // 其他情况直接进行 set 修改
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
+}
