@@ -7,6 +7,7 @@ class RefImpl {
   private _value: any;
   private _rawValue: any; // 保存传入的初始值
   public dep: Set<any>;
+  public __v_isRef = true; // 判断 ref 标识
   constructor(value) {
     this._rawValue = value;
     this._value = convert(value);
@@ -43,4 +44,12 @@ function trackRefValue(ref) {
 // ref API
 export function ref(value) {
   return new RefImpl(value);
+}
+
+export function isRef(ref) {
+  return !!ref.__v_isRef;
+}
+
+export function unRef(ref) {
+  return isRef(ref) ? ref.value : ref;
 }
