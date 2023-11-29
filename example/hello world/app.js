@@ -5,7 +5,19 @@ export const App = {
   render() {
     window.self = this;
     return h("div", { id: "root" }, [
-      h("p", { class: "red" }, "hi:" + this.test),
+      h(
+        "p",
+        {
+          class: "red",
+          onClick: () => {
+            console.log("click");
+          },
+          onMouseMove: () => {
+            console.log("mouse move");
+          },
+        },
+        "hi:" + this.test
+      ),
       h("div", { class: "green" }, this.msg),
     ]);
   },
