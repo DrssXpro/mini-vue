@@ -3,6 +3,7 @@ import { hasOwn } from "../shared";
 // 💡：针对于 this 上的不同$属性，进行 map 抽离
 const publicPropertiesMap = {
   $el: (i) => i.vnode.el,
+  $slots: (i) => i.slots,
 };
 
 // 💡：组件 this 访问代理 proxy 的 getter、setter 抽离
