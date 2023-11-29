@@ -20,7 +20,8 @@ function processElement(vnode, container) {
 }
 
 function mountElement(vnode, container) {
-  const el = document.createElement(vnode.type);
+  // 💡：创建 DOM 同时在 vnode 上进行保存
+  const el = (vnode.el = document.createElement(vnode.type));
 
   // handle props
   const { props } = vnode;
@@ -53,11 +54,13 @@ function processComponent(vnode, container) {
 function mountComponent(vnode, container) {
   const instance = createComponentInstance(vnode);
   setupComponent(instance);
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, vnode, container);
 }
 
-function setupRenderEffect(instance, container) {
+function setupRenderEffect(instance, vnode, container) {
   const { proxy } = instance;
   const subTree = instance.render.call(proxy);
   patch(subTree, container);
+  // 💡：组件的 el 需要取到其 render 函数执行后的第一个节点创建的真实 DOM
+  vnode.el = subTree.el;
 }
