@@ -9,3 +9,5 @@ export const hasChanged = (newValue, oldValue) => {
 };
 
 export const isOn = (key: string) => /^on[^a-z]/.test(key);
+
+export const hasOwn = (value: object, key: string | symbol) => Object.prototype.hasOwnProperty.call(value, key);
