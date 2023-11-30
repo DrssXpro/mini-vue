@@ -1,13 +1,11 @@
-import { createVNode } from "../vnode";
+import { Fragment, createVNode } from "../vnode";
 
 export function renderSlots(slots, name, props) {
   const slot = slots[name];
   if (slot) {
-    // 针对于作用域插槽的处理
     if (typeof slot === "function") {
-      return createVNode("div", {}, slot(props));
-    } else {
-      return createVNode("div", {}, slot);
+      // 💡：使用 Fragment 节点包裹 slots
+      return createVNode(Fragment, {}, slot(props));
     }
   }
 }
