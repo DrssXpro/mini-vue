@@ -4,7 +4,7 @@ import { initProps } from "./componentProps";
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { initSlots } from "./componentSlots";
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   const component = {
     vnode,
     type: vnode.type,
@@ -14,12 +14,14 @@ export function createComponentInstance(vnode) {
     props: {},
     // 💡：slots, 存放 children
     slots: {},
+    // 💡：provide API 存放数据的容器，每个组件实例对象都具备
+    provides: parent ? parent.provides : {},
+    // 💡：parent 属性存放父级实例
+    parent,
     // 💡：emit 方法
     emit: () => {},
   };
-
   component.emit = emit.bind(null, component) as any;
-
   return component;
 }
 
