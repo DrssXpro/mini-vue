@@ -31,14 +31,14 @@ export function setupComponent(instance) {
 
 function setupStatefulComponent(instance) {
   const Component = instance.type;
-
   const { setup } = Component;
-
   if (setup) {
+    // 💡：在 setup 之前保存当前实例对象
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), { emit: instance.emit });
+    setCurrentInstance(null);
     handleSetupResult(instance, setupResult);
   }
-
   instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
 }
 
@@ -53,4 +53,14 @@ function handleSetupResult(instance, setupResult) {
 function finishComponentSetup(instance) {
   const Component = instance.type;
   instance.render = Component.render;
+}
+
+// 利用全局变量保存当前 instance
+let currentInstance = null;
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
