@@ -34,4 +34,30 @@
 
 - computed ✅
 
+## renderer
+
+- component、element init ✅
+
+- 实例代理对象获取 setup 返回值 ✅
+
+- $ 属性代理 ✅
+
+- 组件注册事件功能 ✅
+
+- 组件 props 功能 ✅
+
+- 组件 emit 功能 ✅
+
+- 组件 slot、named slot、scoped slot 功能 ✅
+
+- ShapeFlags ✅
+
+- Fragment、Text node 类型 ✅
+
+- getCurrentIntance ✅
+
+- provide、inject ✅
+
+- createRender ✅
+
   
