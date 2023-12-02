@@ -5,12 +5,16 @@ function createElement(type) {
   return document.createElement(type);
 }
 
-function patchProps(el, key, val) {
+function patchProps(el, key, prevVal, newVal) {
   if (isOn(key)) {
     const event = key.slice(2).toLowerCase();
-    el.addEventListener(event, val);
+    el.addEventListener(event, newVal);
   } else {
-    el.setAttribute(key, val);
+    if (newVal === undefined || newVal === null) {
+      el.removeAttribute(key);
+    } else {
+      el.setAttribute(key, newVal);
+    }
   }
 }
 

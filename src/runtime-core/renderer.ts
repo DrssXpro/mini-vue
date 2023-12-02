@@ -1,4 +1,5 @@
 import { effect } from "../reactivity";
+import { EMPTY_OBJECT } from "../shared";
 import { ShapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
@@ -53,6 +54,32 @@ export function createRender(options) {
 
   function patchElement(n1, n2, container) {
     console.log("n1:", n1, "n2:", n2);
+    // update props
+    const oldProps = n1.props || EMPTY_OBJECT;
+    const newProps = n2.props || EMPTY_OBJECT;
+    const el = (n2.el = n1.el);
+    patchProps(el, oldProps, newProps);
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      // update prop => traverse newProps
+      for (const key in newProps) {
+        const prevVal = oldProps[key];
+        const newVal = newProps[key];
+        if (prevVal !== newVal) {
+          hostPatchProps(el, key, prevVal, newVal);
+        }
+      }
+      if (oldProps !== EMPTY_OBJECT) {
+        // delete prop => traverse oldProps
+        for (const key in oldProps) {
+          if (!(key in newProps)) {
+            hostPatchProps(el, key, oldProps[key], null);
+          }
+        }
+      }
+    }
   }
 
   function mountElement(vnode, container, parentComponent) {
@@ -63,7 +90,7 @@ export function createRender(options) {
     const { props } = vnode;
     for (const key in props) {
       const val = props[key];
-      hostPatchProps(el, key, val);
+      hostPatchProps(el, key, null, val);
     }
 
     // 💡：ShapeFlags handle Children
