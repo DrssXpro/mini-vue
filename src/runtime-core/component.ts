@@ -1,4 +1,4 @@
-import { shallowReadonly } from "../reactivity/reactive";
+import { proxyRefs, shallowReadonly } from "../reactivity";
 import { emit } from "./componentEmits";
 import { initProps } from "./componentProps";
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
@@ -8,6 +8,10 @@ export function createComponentInstance(vnode, parent) {
   const component = {
     vnode,
     type: vnode.type,
+    // 💡：判断是否已经挂载（初始化区分）
+    isMounted: false,
+    // 💡：存储当前的 vnode tree（下次 patch 更新当作旧 tree 使用）
+    subTree: {},
     // 💡：setup 返回的对象 value
     setupState: {},
     // 💡：组件接收 props
@@ -46,7 +50,7 @@ function setupStatefulComponent(instance) {
 
 function handleSetupResult(instance, setupResult) {
   if (typeof setupResult === "object") {
-    instance.setupState = setupResult;
+    instance.setupState = proxyRefs(setupResult);
   }
   // TODO: function
   finishComponentSetup(instance);
