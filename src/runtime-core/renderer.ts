@@ -167,7 +167,6 @@ export function createRender(options) {
         vnode.el = subTree.el;
         instance.isMounted = true;
       } else {
-        console.log("update");
         // 更新逻辑
         const { proxy } = instance;
         const subTree = instance.render.call(proxy);
