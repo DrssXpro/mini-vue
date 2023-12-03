@@ -40,7 +40,6 @@ export const App = {
   render() {
     return h("div", { ...this.props }, [
       h("div", {}, "count:" + this.count),
-      h("div", { onClick: this.changeEvent ? this.onClick1 : this.onClick2 }, "test event"),
       h("button", { onClick: this.onClick }, "Add"),
       h("button", { onClick: this.changeProps1 }, "update Props"),
       h("button", { onClick: this.changeProps2 }, "set Props undefined"),
