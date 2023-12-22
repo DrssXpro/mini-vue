@@ -60,4 +60,12 @@
 
 - createRender ✅
 
+- update element ✅
+
+- fast diff ✅
+
+- update component ✅
+
+- nextTick ✅
+
   
