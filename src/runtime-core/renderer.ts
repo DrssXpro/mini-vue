@@ -196,7 +196,7 @@ export function createRender(options) {
           newIndex = keyToNewIndexMap.get(prevChild.key);
         } else {
           // 针对于 vnode 不存在 key 就需要双层 for 去查找相同节点
-          for (let j = s2; j < e2; j++) {
+          for (let j = s2; j <= e2; j++) {
             if (isSameVNodeType(prevChild, c2[j])) {
               newIndex = j;
               break;
