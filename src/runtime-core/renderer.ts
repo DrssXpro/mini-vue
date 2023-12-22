@@ -2,6 +2,7 @@ import { effect } from "../reactivity";
 import { EMPTY_OBJECT } from "../shared";
 import { ShapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text, isSameVNodeType } from "./vnode";
 
@@ -296,17 +297,37 @@ export function createRender(options) {
   }
 
   function processComponent(n1, n2, container, parentComponent, anchor) {
-    mountComponent(n2, container, parentComponent, anchor);
+    // 区分挂载组件和更新组件逻辑
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      updateComponent(n1, n2);
+    }
+  }
+
+  function updateComponent(n1, n2) {
+    // 获取 instance 同时保存至 n2 上
+    const instance = (n2.component = n1.component);
+    // 比对 props 是否进行更新
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      // 不更新也需要重置虚拟节点
+      n2.el = n1.el;
+      n2.vnode = n2;
+    }
   }
 
   function mountComponent(vnode, container, parentComponent, anchor) {
-    const instance = createComponentInstance(vnode, parentComponent);
+    // 添加 component 字段保存实例
+    const instance = (vnode.component = createComponentInstance(vnode, parentComponent));
     setupComponent(instance);
     setupRenderEffect(instance, vnode, container, anchor);
   }
 
   function setupRenderEffect(instance, vnode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       // 实例增加额外变量判断初始化
       if (!instance.isMounted) {
         const { proxy } = instance;
@@ -319,6 +340,12 @@ export function createRender(options) {
         instance.isMounted = true;
       } else {
         // 更新逻辑
+        // vnode：更新前的虚拟节点  next：下次要更新的虚拟节点
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
         const { proxy } = instance;
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
@@ -332,6 +359,14 @@ export function createRender(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function updateComponentPreRender(instance, nextVNode) {
+  // 将更新前的虚拟节点换为当前要更新的虚拟节点
+  instance.vnode = nextVNode;
+  instance.next = null;
+  // 更新 props
+  instance.props = nextVNode.props;
 }
 
 // 获取最长递增子序列

@@ -22,6 +22,8 @@ export function createComponentInstance(vnode, parent) {
     provides: parent ? parent.provides : {},
     // 💡：parent 属性存放父级实例
     parent,
+    // 💡：保存下次要更新的虚拟节点
+    next: null,
     // 💡：emit 方法
     emit: () => {},
   };

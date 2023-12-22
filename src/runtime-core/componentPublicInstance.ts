@@ -4,6 +4,7 @@ import { hasOwn } from "../shared";
 const publicPropertiesMap = {
   $el: (i) => i.vnode.el,
   $slots: (i) => i.slots,
+  $props: (i) => i.props,
 };
 
 // 💡：组件 this 访问代理 proxy 的 getter、setter 抽离
