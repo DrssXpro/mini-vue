@@ -4,6 +4,7 @@ import { ShapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppAPI } from "./createApp";
+import { queueJobs } from "./scheduler";
 import { Fragment, Text, isSameVNodeType } from "./vnode";
 
 export function createRender(options) {
@@ -327,33 +328,41 @@ export function createRender(options) {
   }
 
   function setupRenderEffect(instance, vnode, container, anchor) {
-    instance.update = effect(() => {
-      // 实例增加额外变量判断初始化
-      if (!instance.isMounted) {
-        const { proxy } = instance;
-        // 将当前的 subTree 保存至实例上
-        const subTree = (instance.subTree = instance.render.call(proxy));
-        // 💡：当前组件作为下一次 patch 的父组件
-        patch(null, subTree, container, instance, anchor);
-        // 💡：组件的 el 需要取到其 render 函数执行后的第一个节点创建的真实 DOM
-        vnode.el = subTree.el;
-        instance.isMounted = true;
-      } else {
-        // 更新逻辑
-        // vnode：更新前的虚拟节点  next：下次要更新的虚拟节点
-        const { next, vnode } = instance;
-        if (next) {
-          next.el = vnode.el;
-          updateComponentPreRender(instance, next);
+    instance.update = effect(
+      () => {
+        // 实例增加额外变量判断初始化
+        if (!instance.isMounted) {
+          const { proxy } = instance;
+          // 将当前的 subTree 保存至实例上
+          const subTree = (instance.subTree = instance.render.call(proxy));
+          // 💡：当前组件作为下一次 patch 的父组件
+          patch(null, subTree, container, instance, anchor);
+          // 💡：组件的 el 需要取到其 render 函数执行后的第一个节点创建的真实 DOM
+          vnode.el = subTree.el;
+          instance.isMounted = true;
+        } else {
+          // 更新逻辑
+          // vnode：更新前的虚拟节点  next：下次要更新的虚拟节点
+          const { next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+          const { proxy } = instance;
+          const subTree = instance.render.call(proxy);
+          const prevSubTree = instance.subTree;
+          // 及时更新实例上的 subTree
+          instance.subTree = subTree;
+          patch(prevSubTree, subTree, container, instance, anchor);
         }
-        const { proxy } = instance;
-        const subTree = instance.render.call(proxy);
-        const prevSubTree = instance.subTree;
-        // 及时更新实例上的 subTree
-        instance.subTree = subTree;
-        patch(prevSubTree, subTree, container, instance, anchor);
+      },
+      {
+        // 使用调度器实现异步更新 DOM
+        scheduler() {
+          queueJobs(instance.update);
+        },
       }
-    });
+    );
   }
 
   return {
