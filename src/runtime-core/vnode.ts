@@ -9,6 +9,8 @@ export function createVNode(type, props?, children?) {
     type,
     props,
     children,
+    // 💡：vnode diff 唯一标识
+    key: props && props.key,
     // 💡：初始化节点类型
     shapeFlag: getShapeFlag(type),
     // 💡：保存虚拟 DOM 创建后的真实 DOM
@@ -39,4 +41,9 @@ export function createTextVNode(text: string) {
 // 初始化根据 type 判断类型
 function getShapeFlag(type) {
   return typeof type === "string" ? ShapeFlags.ELEMENT : ShapeFlags.STATEFUL_COMPONENT;
+}
+
+// 💡：diff 判断两节点是否相同
+export function isSameVNodeType(n1, n2) {
+  return n1.type === n2.type && n1.key === n2.key;
 }

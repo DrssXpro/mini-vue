@@ -41,8 +41,9 @@ function patchProps(el, key, prevVal, newVal) {
   }
 }
 
-function insert(el, parent) {
-  parent.append(el);
+function insert(child, parent, anchor) {
+  // 在 anchor 元素之前插入，null 时默认插入到尾部
+  parent.insertBefore(child, anchor || null);
 }
 
 function remove(child) {
